@@ -9,18 +9,11 @@ import imutils
 #Declaracion de configuracion de la bitacora y configurando el tipo de retornos que hara en la bitacora
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    filename='ServerDataAnalytic.log',
+                    filename='Tracking2D.log',
                     filemode='w')
 
 
 #Se declara la funcion de tracking_image que estara encargada del analisis de las imagenes
-
-
-
-
-
-
-
 def tracking_image():
     
     ap = argparse.ArgumentParser()
@@ -112,11 +105,11 @@ def tracking_image():
                 #Con shape sacamos la altura y el ancho
                 h,w,_=trainImg.shape
 
-                #Guardamos los datos de la altura y el ancho en la bitacora
-                logging.info("Valor de Altura:")
-                logging.info(h)
-                logging.info("Valor del Ancho")
-                logging.info(w)
+                # #Guardamos los datos de la altura y el ancho en la bitacora
+                # logging.info("Valor de Altura:")
+                # logging.info(h)
+                # logging.info("Valor del Ancho")
+                # logging.info(w)
 
                 #Se empieza hacer el cuadrado que cubrira a la imagen una vez ya detectada
                 trainBorder=np.float32([[[0,0],[0,h-1],[w-1,h-1],[w-1,0]]])
@@ -136,17 +129,20 @@ def tracking_image():
                 cv2.CHAIN_APPROX_SIMPLE)[-2]
                 center = None
 
+                logging.info("Valor de contornos")
+                logging.info(str(cnts))
+
                 #print str(cnts)
                 opening=cv2.morphologyEx(mascara, cv2.MORPH_OPEN, kernel)
                 x,y,w,h = cv2.boundingRect(opening)
 
                 #Se hace el calculo de las coordenadas (x, y)
-                coorner_x = (x + w / 2)
-                coorner_y = (y + h / 2)
+                # coorner_x = (x + w / 2)
+                # coorner_y = (y + h / 2)
 
 
-                logging.info("Valor de coordenadas (x , y): ")
-                logging.info(str(coorner_x) + " " + str(coorner_y))
+                # logging.info("Valor de coordenadas (x , y): ")
+                # logging.info(str(coorner_x) + " " + str(coorner_y))
 
                 #Se dibuja el centro de la imagen una vez ya calculado
                 cv2.circle(QueryImgBGR,(x+w/2, y+h/2),5,(0,0,255),-1)
@@ -158,26 +154,29 @@ def tracking_image():
                     # find the largest contour in the mask, then use
                     # it to compute the minimum enclosing circle and
                     # centroid
+                    logging.info("Longitud de contornos: ")
+                    logging.info(str(len(cnts)))
                     c = max(cnts, key=cv2.contourArea)
                     ((x, y), radius) = cv2.minEnclosingCircle(c)
                     M = cv2.moments(c)
                     center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-
+                    
+                    logging.info("Valor de c: ")
+                    logging.info(str(c))
+                    logging.info("Valor de M: ")
+                    logging.info(str(M))
+                    logging.info("Valor de center: ")
+                    logging.info(center)
                     # only proceed if the radius meets a minimum size
                     if radius > 10:
+                        logging.info("Valor de radio: ")
+                        logging.info(radius)
                         # draw the circle and centroid on the frame,
                         # then update the list of tracked points
                         cv2.circle(QueryImgBGR, (int(x), int(y)), int(radius),
                             (0, 255, 255), 2)
                         cv2.circle(QueryImgBGR, center, 5, (0, 0, 255), -1)
                         pts.appendleft(center)
-
-                    print "x: " + str(x)    
-                    print "y: " + str(y)    
-                    print "radio: " + str(radius)
-                    pts.appendleft(center)
-
-
 
                     # loop over the set of tracked points
                     for i in np.arange(1, len(pts)):
@@ -200,7 +199,7 @@ def tracking_image():
                             # x-direction
                             if np.abs(dX) > 20:
                                 dirX = "East" if np.sign(dX) == 1 else "West"
-                
+                            
                             # ensure there is significant movement in the
                             # y-direction
                             if np.abs(dY) > 20:
@@ -221,7 +220,6 @@ def tracking_image():
                             cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
                     # show the movement deltas and the direction of movement on
                     # the frame
-                    print str(direction)
                     cv2.putText(QueryImgBGR, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                         0.65, (0, 0, 255), 3)
                     cv2.putText(QueryImgBGR, "dx: {}, dy: {}".format(dX, dY),
