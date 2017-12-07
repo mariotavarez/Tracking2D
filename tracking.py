@@ -57,7 +57,7 @@ def tracking_image():
     # if a video path was not supplied, grab the reference
     # to the webcam
     if not args.get("video", False):
-        cam = cv2.VideoCapture(0)
+        cam = cv2.VideoCapture(2)
     
     # otherwise, grab a reference to the video file
     else:
@@ -205,28 +205,28 @@ def tracking_image():
                             # ensure there is significant movement in the
                             # x-direction
                             if np.abs(dX) > 20:
-                                dirX = "East" if np.sign(dX) == 1 else "West"
+                                dirX = "Move Left" if np.sign(dX) == 1 else "Move Right"
 
                             # ensure there is significant movement in the
                             # y-direction
                             if np.abs(dY) > 20:
-                                dirY = "North" if np.sign(dY) == 1 else "South"
+                                dirY = "Move Down" if np.sign(dY) == 1 else "Move Up"
                 
                             # handle when both directions are non-empty
                             if dirX != "" and dirY != "":
-                                direction = "{}-{}".format(dirY, dirX)
+                                direction = "{} AND {}".format(dirY, dirX)
                                 print "coords: " + str(direction)
                                 logging.info(str(direction))
                             # otherwise, only one direction is non-empty
                             else:
-                                direction = dirX if dirX != "" else dirY  
-
+                                print "Centrado"
                             # otherwise, compute the thickness of the line and
                             # draw the connecting lines
                             thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
                             cv2.line(QueryImgBGR, pts[i - 1], pts[i], (0, 0, 255), thickness)
                     # show the movement deltas and the direction of movement on
                     # the frame
+                    print str(direction)
                     cv2.putText(QueryImgBGR, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                         0.65, (0, 0, 255), 3)
                     cv2.putText(QueryImgBGR, "dx: {}, dy: {}".format(dX, dY),
