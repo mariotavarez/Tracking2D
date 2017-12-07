@@ -9,7 +9,7 @@ import imutils
 #Declaracion de configuracion de la bitacora y configurando el tipo de retornos que hara en la bitacora
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    filename='Tracking2D.log',
+                    filename='Tracking.log',
                     filemode='w')
 
 
@@ -18,7 +18,6 @@ def tracking_image():
     
     ap = argparse.ArgumentParser()
    
-    
     ap.add_argument("-b", "--buffer", type=int, default=32,
         help="max buffer size")
     ap.add_argument("-m","--match", type=int, default=30,
@@ -43,7 +42,7 @@ def tracking_image():
     flann=cv2.FlannBasedMatcher(flannParam,{})
 
     #Se carga la imagen la cual sera reconocida con el metodo imred()
-    trainImg=cv2.imread("intel.png")
+    trainImg=cv2.imread("puerto.png")
 
     #La imagen cargada se convierte a escala de grises para un mejor reconocimiento con el metodo cvtColor()
     gray = cv2.cvtColor(trainImg, cv2.COLOR_BGR2GRAY)
@@ -57,7 +56,7 @@ def tracking_image():
     # if a video path was not supplied, grab the reference
     # to the webcam
     if not args.get("video", False):
-        cam = cv2.VideoCapture(2)
+        cam = cv2.VideoCapture(0)
     
     # otherwise, grab a reference to the video file
     else:
@@ -219,14 +218,14 @@ def tracking_image():
                                 logging.info(str(direction))
                             # otherwise, only one direction is non-empty
                             else:
-                                print "Centrado"
+                                direction = dirX if dirX != "Correct" else dirY  
+
                             # otherwise, compute the thickness of the line and
                             # draw the connecting lines
                             thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
                             cv2.line(QueryImgBGR, pts[i - 1], pts[i], (0, 0, 255), thickness)
                     # show the movement deltas and the direction of movement on
                     # the frame
-                    print str(direction)
                     cv2.putText(QueryImgBGR, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                         0.65, (0, 0, 255), 3)
                     cv2.putText(QueryImgBGR, "dx: {}, dy: {}".format(dX, dY),
