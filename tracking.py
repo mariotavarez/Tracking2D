@@ -9,15 +9,43 @@ import imutils
 #Declaracion de configuracion de la bitacora y configurando el tipo de retornos que hara en la bitacora
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s',
-                    filename='Tracking.log',
+                    filename='Tracking2D.log',
                     filemode='w')
 
+
+#Se declara la funcion de find_coords para encontrar las coordenadas del centro
+def find_coords( coordenada ):
+    logging.info("chistorra")
+    coordenadas_definidas =  [(0,0), (0,-1), (0,-2), (0,-3), (0,-4), (0,-5), (0,-6), (0,-7), (0,-8), (0,-9), (0,-10),
+                             (-1,0), (-1,1), (-1,2), (-1,3), (-1,4), (-1,5), (-1,6), (-1,7), (-1,8), (-1,9), (-1,10), 
+                             (-2,0), (-2,1), (-2,2), (-2,3), (-2,4), (-2,5), (-2,6), (-2,7), (-2,8), (-2,9), (-2,10),
+                             (-3,0), (-3,1), (-3,2), (-3,3), (-3,4), (-3,5), (-3,6), (-3,7), (-3,8), (-3,9), (-3,10),
+                             (-4,0), (-4,1), (-4,2), (-4,3), (-4,4), (-4,5), (-4,6), (-4,7), (-4,8), (-4,9), (-4,10),
+                             (-5,0), (-5,1), (-5,2), (-5,3), (-5,4), (-5,5), (-5,6), (-5,7), (-5,8), (-5,9), (-5,10),
+                             (-6,0), (-6,1), (-6,2), (-6,3), (-6,4), (-6,5), (-6,6), (-6,7), (-6,8), (-6,9), (-6,10),
+                             (-7,0), (-7,1), (-7,2), (-7,3), (-7,4), (-7,5), (-7,6), (-7,7), (-7,8), (-7,9), (-7,10),
+                             (1,-1), (1,-2), (1,-3), (1,-4), (1,-5), (1,-6), (1,-7), (1,-8), (1,-9), (1,-10),
+                             (2,-1), (2,-2), (2,-3), (2,-4), (2,-5), (2,-6), (2,-7), (2,-8), (2,-9), (2,-10),
+                             (3,-1), (3,-2), (3,-3), (3,-4), (3,-5), (3,-6), (3,-7), (3,-8), (3,-9), (3,-10),
+                             (4,-1), (4,-2), (4,-3), (4,-4), (4,-5), (4,-6), (4,-7), (4,-8), (4,-9), (4,-10),                            
+                             (5,-1), (5,-2), (5,-3), (5,-4), (5,-5), (5,-6), (5,-7), (5,-8), (5,-9), (5,-10),                            
+                             (6,-1), (6,-2), (6,-3), (6,-4), (6,-5), (6,-6), (6,-7), (6,-8), (6,-9), (6,-10),                             
+                             (7,-1), (7,-2), (7,-3), (7,-4), (7,-5), (7,-6), (7,-7), (7,-8), (7,-9), (7,-10),                             
+                             ]
+    coordenadas_obtenidas = coordenada
+    for buffer_coordenadas in coordenadas_definidas:
+        if  buffer_coordenadas in  coordenadas_obtenidas:
+            print "Encontre el centro, RPAS listo para aterrizar"
 
 #Se declara la funcion de tracking_image que estara encargada del analisis de las imagenes
 def tracking_image():
     
+    logging.info("****************************************")
+    logging.info("******** Inicio de la bitacora *********")
+    logging.info("****************************************")    
     ap = argparse.ArgumentParser()
    
+    
     ap.add_argument("-b", "--buffer", type=int, default=32,
         help="max buffer size")
     ap.add_argument("-m","--match", type=int, default=30,
@@ -27,8 +55,6 @@ def tracking_image():
 
     args = vars(ap.parse_args())
   
-    # initialize the list of tracked points, the frame counter,
-    # and the coordinate deltas
     pts = deque(maxlen=args["buffer"])  
     counter = 0
     (dX, dY) = (0, 0)
@@ -42,7 +68,7 @@ def tracking_image():
     flann=cv2.FlannBasedMatcher(flannParam,{})
 
     #Se carga la imagen la cual sera reconocida con el metodo imred()
-    trainImg=cv2.imread("puerto.png")
+    trainImg=cv2.imread("intel.png")
 
     #La imagen cargada se convierte a escala de grises para un mejor reconocimiento con el metodo cvtColor()
     gray = cv2.cvtColor(trainImg, cv2.COLOR_BGR2GRAY)
@@ -53,12 +79,9 @@ def tracking_image():
     #trainDesc guarda los descriptores
     trainKP,trainDesc=detector.detectAndCompute(gray,None)
 
-    # if a video path was not supplied, grab the reference
-    # to the webcam
     if not args.get("video", False):
         cam = cv2.VideoCapture(0)
     
-    # otherwise, grab a reference to the video file
     else:
         cam = cv2.VideoCapture(args["video"])
 
@@ -122,14 +145,10 @@ def tracking_image():
                 mascara = cv2.erode(mascara, None, iterations=2)
                 mascara = cv2.dilate(mascara, None, iterations=2)
             
-                # find contours in the mask and initialize the current
-                # (x, y) center of the frame
                 cnts = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL,
                 cv2.CHAIN_APPROX_SIMPLE)[-2]
 
-                logging.info("Valor de contornos")
-                logging.info(str(cnts))
-
+                
                 #print str(cnts)
                 opening=cv2.morphologyEx(mascara, cv2.MORPH_OPEN, kernel)
                 x,y,w,h = cv2.boundingRect(opening)
@@ -146,100 +165,70 @@ def tracking_image():
                 cv2.circle(QueryImgBGR,(x+w/2, y+h/2),5,(0,0,255),-1)
 
 
-                # only proceed if at least one contour was found
                 if len(cnts) > 0:
-                    #print "cantidad de contornos: " + str(cnts)
-                    # find the largest contour in the mask, then use
-                    # it to compute the minimum enclosing circle and
-                    # centroid
-                    logging.info("Longitud de contornos: ")
-                    logging.info(str(len(cnts)))
                     c = max(cnts, key=cv2.contourArea)
                     ((x, y), radius) = cv2.minEnclosingCircle(c)
                     M = cv2.moments(c)
                     center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
                     
-                    logging.info("Valor de c: ")
-                    logging.info(str(c))
-                    logging.info("Valor de M: ")
-                    logging.info(str(M))
-                    logging.info("Valor de center: ")
-                    logging.info(center)
-                    # only proceed if the radius meets a minimum size
                     if radius > 10:
                         logging.info("Valor de radio: ")
                         logging.info(radius)
-                        # draw the circle and centroid on the frame,
-                        # then update the list of tracked points
                         cv2.circle(QueryImgBGR, (int(x), int(y)), int(radius),
                             (0, 255, 255), 2)
                         cv2.circle(QueryImgBGR, center, 5, (0, 0, 255), -1)
                         pts.appendleft(center)
-                        logging.info("puntos: ")
-                        logging.info(str(pts.appendleft(center)))
+                    try:
+                        for i in np.arange(1, len(pts)):
+                            logging.info("Longitud de puntos: ")
+                            logging.info(str(len(pts)))
+                            if pts[i - 1] is None or pts[i] is None:
+                                continue
+                            
+                            if counter >= 10 and i == 1 and pts[-10] is not None:
+                            
+                                dX = pts[-10][0] - pts[i][0]
+                                dY = pts[-10][1] - pts[i][1]
+                                (dirX, dirY) = ("", "")
+                    
+                                if np.abs(dX) > 20:
+                                    dirX = "is moving it Right" if np.sign(dX) == 1 else "is moving it Left"
 
-                    # loop over the set of tracked points
-                    for i in np.arange(1, len(pts)):
-                        logging.info("Longitud de puntos: ")
-                        logging.info(str(len(pts)))
-                        # if either of the tracked points are None, ignore
-                        # them
-                        if pts[i - 1] is None or pts[i] is None:
-                            continue
-                
-                        # check to see if enough points have been accumulated in
-                        # the buffer
-                        logging.info("Counter: ")
-                        logging.info(str(counter))
-                        logging.info("i = ")
-                        logging.info(str(i))
-                        if counter >= 10 and i == 1 and pts[-10] is not None:
-                            # compute the difference between the x and y
-                            # coordinates and re-initialize the direction
-                            # text variables
-                            dX = pts[-10][0] - pts[i][0]
-                            dY = pts[-10][1] - pts[i][1]
-                            (dirX, dirY) = ("", "")
-                
-                            # ensure there is significant movement in the
-                            # x-direction
-                            if np.abs(dX) > 20:
-                                dirX = "Move Left" if np.sign(dX) == 1 else "Move Right"
+                                if np.abs(dY) > 20:
+                                    dirY = "is moving it Up" if np.sign(dY) == 1 else "is moving it Down"
+                    
+                                if dirX != "" and dirY != "":
+                                    direction = "{}-{}".format(dirY, dirX)
+                                    print "coords: " + str(direction)
+                                    logging.info(str(direction))
+                                else:
+                                    direction = dirX if dirX != "" else dirY  
 
-                            # ensure there is significant movement in the
-                            # y-direction
-                            if np.abs(dY) > 20:
-                                dirY = "Move Down" if np.sign(dY) == 1 else "Move Up"
-                
-                            # handle when both directions are non-empty
-                            if dirX != "" and dirY != "":
-                                direction = "{} AND {}".format(dirY, dirX)
-                                print "coords: " + str(direction)
-                                logging.info(str(direction))
-                            # otherwise, only one direction is non-empty
-                            else:
-                                direction = dirX if dirX != "Correct" else dirY  
-
-                            # otherwise, compute the thickness of the line and
-                            # draw the connecting lines
-                            thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
-                            cv2.line(QueryImgBGR, pts[i - 1], pts[i], (0, 0, 255), thickness)
-                    # show the movement deltas and the direction of movement on
-                    # the frame
-                    cv2.putText(QueryImgBGR, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.65, (0, 0, 255), 3)
-                    cv2.putText(QueryImgBGR, "dx: {}, dy: {}".format(dX, dY),
-                        (10, QueryImgBGR.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.35, (0, 0, 255), 1)
-
-
-               
+                                thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
+                                cv2.line(QueryImgBGR, pts[i - 1], pts[i], (0, 0, 255), thickness)
+                                
+                                logging.info("Coordenada en X:")
+                                logging.info(str(dX))
+                                logging.info("Coordenada en Y: ")
+                                logging.info(str(dY))
+                                #Llama la funcion find_coords para mandar la coordenada obtenida y saber si esta en el centro
+                                transformation_coords = str(dX) + "," + str(dY)
+                                transformation_array_coords = eval('[(' + transformation_coords + ')]')
+                                find_coords( transformation_array_coords )
+                        cv2.putText(QueryImgBGR, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.65, (0, 0, 255), 3)
+                        cv2.putText(QueryImgBGR, "dx: {}, dy: {}".format(dX, dY),
+                            (10, QueryImgBGR.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.35, (0, 0, 255), 1)
+                        
+                    except:
+                        print "Fuera de rango"   
             #Si no existen suficientes coincidencias mandamos el numero de coincidencias
             else:
-                print "No existen coincidencias de imagen- %d/%d"%(len(goodMatch),MIN_MATCH_COUNT)
+                print "No puedo encontrar el objeto"
 
             #Muestra en pantalla el frame que se captura con la variable QueryImgBGR
-            cv2.imshow('Analizador de vision artificial',QueryImgBGR)
+            cv2.imshow('Analizador de aterrizaje',QueryImgBGR)
             
             counter += 1
             #Si queremos salir del programa presionamos la letra q
